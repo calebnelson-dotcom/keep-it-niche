@@ -11,7 +11,7 @@
     <link rel="shortcut icon" content="favicon.webp" />
     <link rel="stylesheet" href="index.css" />
 
-    <!-- Scramjet core – keep these -->
+    <!-- Scramjet core – DO NOT REMOVE -->
     <script src="/scram/scramjet.all.js"></script>
     <script src="baremux/index.js" defer></script>
     <script src="epoxy/index.js" defer></script>
@@ -97,7 +97,7 @@
         color: var(--fg);
       }
 
-      /* MAIN LAYOUT */
+      /* PAGE LAYOUT */
       .page {
         min-height: calc(100vh - var(--header-h));
         display: flex;
@@ -116,22 +116,24 @@
         box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8);
       }
 
-      .hub-heading {
-        margin-bottom: 14px;
-        font-size: 18px;
-        font-weight: 600;
+      .page-title {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 6px;
       }
 
-      .hub-sub {
-        margin: 0 0 20px;
+      .page-sub {
+        text-align: center;
         font-size: 13px;
         color: var(--fg-dim);
+        margin: 0 0 20px;
       }
 
       /* SEARCH */
       #sj-form {
         display: flex;
-        margin-bottom: 10px;
+        margin-bottom: 14px;
       }
 
       #sj-address {
@@ -150,10 +152,45 @@
         color: #6b7280;
       }
 
-      /* ERROR AREA */
+      /* RANDOM MESSAGE */
+      .random-wrap {
+        margin-top: 6px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      #random-message {
+        font-size: 13px;
+        color: var(--fg);
+      }
+
+      #random-refresh {
+        font-size: 11px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: transparent;
+        color: var(--fg-dim);
+        padding: 4px 10px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      #random-refresh:hover {
+        color: var(--fg);
+        background: rgba(37, 99, 235, 0.35);
+        border-color: rgba(59, 130, 246, 0.9);
+      }
+
+      /* ERROR AREA (Scramjet) */
       .error-wrap {
         min-height: 18px;
-        margin-top: 6px;
+        margin-top: 10px;
         font-size: 11px;
         color: #fda4af;
         white-space: pre-wrap;
@@ -168,7 +205,7 @@
       }
 
       .footer {
-        margin-top: 12px;
+        margin-top: 16px;
         font-size: 11px;
         color: #6b7280;
         display: flex;
@@ -192,7 +229,7 @@
   <body>
     <header class="site-header">
       <div class="site-title">
-        Scramjet Hub <span>proxy · games · chat</span>
+        Scramjet Hub <span>home</span>
       </div>
       <nav class="site-nav">
         <a href="index.html" class="active">Proxy</a>
@@ -204,10 +241,8 @@
 
     <main class="page">
       <section class="hub-card">
-        <h1 class="hub-heading">Search the web through Scramjet</h1>
-        <p class="hub-sub">
-          Type a URL or search term and press Enter. Traffic is routed through Scramjet.
-        </p>
+        <h1 class="page-title">Scramjet Hub</h1>
+        <p class="page-sub">Search, hide, and hop around the web from one place.</p>
 
         <!-- Scramjet search – IDs MUST stay the same -->
         <form id="sj-form">
@@ -223,6 +258,13 @@
           />
         </form>
 
+        <!-- RANDOM MESSAGE BLOCK -->
+        <div class="random-wrap">
+          <div id="random-message">Loading…</div>
+          <button type="button" id="random-refresh">new message</button>
+        </div>
+
+        <!-- Scramjet error output -->
         <div class="error-wrap">
           <p id="sj-error"></p>
           <pre id="sj-error-code"></pre>
@@ -246,5 +288,30 @@
         </div>
       </section>
     </main>
+
+    <script>
+      // Random messages – change these to whatever you want
+      const SJ_MESSAGES = [
+        "Proxy on. Eyes off.",
+        "If it loads, it plays.",
+        "Scramjet: faster than the filter.",
+        "Type a URL, disappear.",
+        "Games, chat, proxy – one hub.",
+        "If you can think it, you can ping it."
+      ];
+
+      function setRandomMessage() {
+        const box = document.getElementById("random-message");
+        if (!box || !SJ_MESSAGES.length) return;
+        const idx = Math.floor(Math.random() * SJ_MESSAGES.length);
+        box.textContent = SJ_MESSAGES[idx];
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        setRandomMessage();
+        const btn = document.getElementById("random-refresh");
+        if (btn) btn.addEventListener("click", setRandomMessage);
+      });
+    </script>
   </body>
 </html>
