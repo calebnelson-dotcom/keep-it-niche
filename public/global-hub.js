@@ -1,110 +1,156 @@
 // global-hub.js
+// Shared settings: tab cloaking + accent color across all pages.
+
 (function () {
-  // Same presets as settings page
-  const TAB_PRESETS = {
-    default: {
-      title: "S0LACE",
-      favicon: "favicon.ico",
+  const ACCENT_KEY = "s0laceAccent";
+  const CLOAK_KEY = "s0laceTabCloak";
+
+  const ACCENTS = {
+    green: {
+      accent: "#00ff7f",
+      soft: "rgba(0, 255, 127, 0.12)",
     },
-    gdocs: {
-      title: "Untitled document - Google Docs",
-      favicon: "https://ssl.gstatic.com/docs/doclist/images/drive_icon_16.png",
+    violet: {
+      accent: "#a855f7",
+      soft: "rgba(168, 85, 247, 0.12)",
     },
-    gclass: {
-      title: "Classes",
-      favicon: "https://ssl.gstatic.com/classroom/favicon.png",
-    },
-    gdrive: {
-      title: "My Drive - Google Drive",
-      favicon: "https://ssl.gstatic.com/docs/doclist/images/drive_icon_16.png",
-    },
-    khan: {
-      title: "Dashboard | Khan Academy",
-      favicon: "https://cdn.kastatic.org/images/favicon.ico",
+    amber: {
+      accent: "#fbbf24",
+      soft: "rgba(251, 191, 36, 0.12)",
     },
   };
 
-  function getFaviconLinks() {
-    const links = Array.from(
-      document.querySelectorAll(
-        'link[rel="icon"], link[rel="shortcut icon"]'
-      )
+  function setCssVar(name, value) {
+    document.documentElement.style.setProperty(name, value);
+  }
+
+  // ---------- ACCENT THEME ----------
+
+  function applyAccent(accentKey, save = true) {
+    const preset = ACCENTS[accentKey] || ACCENTS.green;
+    setCssVar("--accent", preset.accent);
+    setCssVar("--accent-soft", preset.soft);
+    if (save) {
+      try {
+        localStorage.setItem(ACCENT_KEY, accentKey);
+      } catch (_) {}
+    }
+  }
+
+  function loadAccent() {
+    let stored;
+    try {
+      stored = localStorage.getItem(ACCENT_KEY);
+    } catch (_) {
+      stored = null;
+    }
+    if (!stored || !ACCENTS[stored]) stored = "green";
+    applyAccent(stored, false);
+    return stored;
+  }
+
+  // ---------- TAB CLOAKING ----------
+
+  function getOrCreateFaviconLink() {
+    let link =
+      document.querySelector('link[rel="shortcut icon"]') ||
+      document.querySelector('link[rel="icon"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "shortcut icon";
+      document.head.appendChild(link);
+    }
+    return link;
+  }
+
+  function applyTabCloak(cfg, save = true) {
+    if (!cfg || !cfg.enabled) return;
+
+    const title = cfg.title || document.title;
+    const iconHref = cfg.iconHref || "";
+
+    document.title = title;
+
+    if (iconHref) {
+      const link = getOrCreateFaviconLink();
+      link.href = iconHref;
+    }
+
+    if (save) {
+      try {
+        localStorage.setItem(
+          CLOAK_KEY,
+          JSON.stringify({
+            enabled: true,
+            title,
+            iconHref,
+          })
+        );
+      } catch (_) {}
+    }
+  }
+
+  function clearTabCloak(save = true) {
+    // Reload original title from data attribute if present, else leave as-is
+    const originalTitle = document.documentElement.getAttribute(
+      "data-original-title"
     );
-    if (links.length > 0) return links;
+    if (originalTitle) document.title = originalTitle;
 
-    const link = document.createElement("link");
-    link.rel = "icon";
-    document.head.appendChild(link);
-    return [link];
-  }
+    // Reset favicon to whatever is in HTML already
+    // (we don't store the original, so we just don't touch it.)
 
-  function applySavedTabCloak() {
-    const mode = localStorage.getItem("sjTabMode") || "preset";
-    const presetKey = localStorage.getItem("sjTabPreset") || "default";
-    const savedTitle = localStorage.getItem("sjTabTitle") || "";
-    const savedFav = localStorage.getItem("sjTabFavicon") || "";
-
-    let finalTitle = document.title || "S0LACE";
-    let finalFav = null;
-
-    if (mode === "custom") {
-      if (savedTitle) finalTitle = savedTitle;
-      if (savedFav) finalFav = savedFav;
-    } else {
-      const p = TAB_PRESETS[presetKey] || TAB_PRESETS.default;
-      finalTitle = p.title;
-      finalFav = p.favicon;
-    }
-
-    document.title = finalTitle;
-
-    if (finalFav) {
-      const links = getFaviconLinks();
-      links.forEach((l) => (l.href = finalFav));
+    if (save) {
+      try {
+        localStorage.removeItem(CLOAK_KEY);
+      } catch (_) {}
     }
   }
 
-  // NEW: Helper to inject the specific colors you requested
-  function injectThemeStyles() {
-    const styleId = "sj-dynamic-theme";
-    if (document.getElementById(styleId)) return; // Prevent duplicates
+  function loadTabCloak() {
+    let raw;
+    try {
+      raw = localStorage.getItem(CLOAK_KEY);
+    } catch (_) {
+      raw = null;
+    }
+    if (!raw) return null;
 
-    const style = document.createElement("style");
-    style.id = styleId;
-    style.textContent = `
-      /* DEFAULT (DARK MODE) - PURE BLACK */
-      body {
-        background-color: #000000 !important;
-        color: #ffffff !important; /* White text for contrast */
-        transition: background-color 0.3s ease, color 0.3s ease;
-      }
-      
-      /* Make sure headings/titles inherit the white color in dark mode */
-      h1, h2, h3, h4, h5, h6, .title, span, p {
-        color: inherit; 
-      }
-
-      /* LIGHT THEME - GRAY */
-      body.theme-light {
-        background-color: #808080 !important; /* Standard Gray */
-        color: #000000 !important; /* Black text for contrast */
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function applySavedTheme() {
-    const mode = localStorage.getItem("sjTheme") || "dark";
-    if (mode === "light") {
-      document.body.classList.add("theme-light");
-    } else {
-      document.body.classList.remove("theme-light");
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed || !parsed.enabled) return null;
+      applyTabCloak(parsed, false);
+      return parsed;
+    } catch (_) {
+      return null;
     }
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    injectThemeStyles(); // Inject the CSS colors first
-    applySavedTheme();   // Apply the class
-    applySavedTabCloak();
-  });
+  // ---------- LOAD ON EVERY PAGE ----------
+
+  function bootstrap() {
+    // store original title for reset
+    if (!document.documentElement.getAttribute("data-original-title")) {
+      document.documentElement.setAttribute("data-original-title", document.title);
+    }
+
+    const activeAccent = loadAccent();
+    loadTabCloak();
+
+    // Fire a simple event so pages can react if they want
+    const evt = new CustomEvent("s0lace:settingsLoaded", {
+      detail: { accent: activeAccent },
+    });
+    window.dispatchEvent(evt);
+  }
+
+  document.addEventListener("DOMContentLoaded", bootstrap);
+
+  // expose helpers for settings.html
+  window.S0LACE = {
+    applyAccent,
+    applyTabCloak,
+    clearTabCloak,
+    loadAccent,
+  };
 })();
