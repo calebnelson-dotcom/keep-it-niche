@@ -1,185 +1,222 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-    />
-    <title>S0LACE • Media Player</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Media Player</title>
 
-    <link rel="shortcut icon" content="favicon.ico" />
-    <link rel="stylesheet" href="index.css" />
+  <link rel="stylesheet" href="index.css" />
+</head>
 
-    <!-- BareMux + Epoxy for Scramjet backend -->
-    <script src="baremux/index.js"></script>
-    <script src="epoxy/index.js"></script>
+<body class="mediaplayer-page">
+  <header class="site-header">
+    <div class="site-title">S0LACE</div>
+    <nav class="site-nav">
+      <a href="index.html">Home</a>
+      <a href="games.html">Games</a>
+      <a href="media.html" class="active">Media</a>
+      <a href="apps.html">Apps</a>
+      <a href="settings.html">Settings</a>
+    </nav>
+  </header>
 
-    <!-- Service worker + global stuff -->
-    <script src="register-sw.js" defer></script>
-    <script src="global-hub.js" defer></script>
+  <main>
+    <h1 id="media-title">Loading…</h1>
 
-    <!-- tiny local styles for loading overlay -->
-    <style>
-      .player-loading {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        font-size: 9px;
-        color: var(--fg-dim);
-        background: radial-gradient(
-          circle at top,
-          rgba(0, 0, 0, 0.95),
-          rgba(0, 0, 0, 0.98)
-        );
-        z-index: 2;
-        text-align: center;
-        padding: 16px;
+    <!-- PLAYER -->
+    <div class="player-wrap">
+      <iframe
+        id="player-frame"
+        allow="fullscreen; autoplay"
+        allowfullscreen
+        referrerpolicy="no-referrer"
+      ></iframe>
+    </div>
+
+    <!-- TV SHOW SECTION -->
+    <div id="tv-section" style="display:none;">
+      <h2>Seasons</h2>
+      <select id="season-select"></select>
+
+      <h2 style="margin-top:20px;">Episodes</h2>
+      <div id="episode-list" class="episode-list"></div>
+    </div>
+  </main>
+
+  <script>
+    const TMDB_KEY = "2d1351cf74f73892042699d0431b799a";
+    const IMG_BASE = "https://image.tmdb.org/t/p/w300";
+
+    const urlParams = new URLSearchParams(location.search);
+    const srcParam = urlParams.get("src");
+    const titleParam = urlParams.get("title");
+
+    const titleEl = document.getElementById("media-title");
+    const playerFrame = document.getElementById("player-frame");
+    const seasonSelect = document.getElementById("season-select");
+    const episodeList = document.getElementById("episode-list");
+    const tvSection = document.getElementById("tv-section");
+
+    // ------------------------------
+    //  INITIAL SET TITLE + PLAYER
+    // ------------------------------
+
+    if (titleParam) titleEl.textContent = titleParam;
+
+    if (srcParam) {
+      playerFrame.src = decodeURIComponent(srcParam);
+    }
+
+    // ------------------------------
+    //  DETECT IF THIS IS TV SHOW
+    // ------------------------------
+
+    let currentTMDB_ID = null;
+    const matched = decodeURIComponent(srcParam || "").match(/player\/(\d+)/);
+
+    if (matched) {
+      currentTMDB_ID = matched[1];
+      loadTVorMovie(currentTMDB_ID);
+    }
+
+    // ------------------------------
+    //  LOAD IF MOVIE OR TV
+    // ------------------------------
+
+    async function loadTVorMovie(id) {
+      const res = await fetch(
+        `https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}`
+      );
+      if (res.ok) {
+        // It's a MOVIE → nothing else needed.
+        tvSection.style.display = "none";
+        return;
       }
-      .player-loading span {
-        margin-top: 6px;
-        opacity: 0.7;
-      }
-      .player-frame-wrap {
-        position: relative;
-      }
-    </style>
-  </head>
 
-  <body class="media-player-page">
-    <header class="site-header">
-      <div class="site-title">
-        S0LACE
-      </div>
-      <nav class="site-nav">
-        <a href="index.html">Home</a>
-        <a href="games.html">Games</a>
-        <a href="media.html" class="active">Media</a>
-        <a href="apps.html">Apps</a>
-        <a href="settings.html">Settings</a>
-      </nav>
-    </header>
+      // Try TV show endpoint
+      const tvRes = await fetch(
+        `https://api.themoviedb.org/3/tv/${id}?api_key=${TMDB_KEY}`
+      );
+      if (!tvRes.ok) return;
 
-    <main class="player-main">
-      <div class="player-info">
-        <div class="player-left">
-          <span id="player-title">Loading…</span>
-        </div>
-        <div class="player-actions">
-          <a href="media.html">← BACK TO MEDIA</a>
-          <button id="open-new-tab">OPEN IN NEW TAB</button>
-        </div>
-      </div>
+      const tvData = await tvRes.json();
+      titleEl.textContent = tvData.name;
+      tvSection.style.display = "block";
 
-      <div class="player-frame-wrap">
-        <!-- loading overlay -->
-        <div id="player-loading" class="player-loading">
-          CONNECTING TO PROXY…
-          <span id="player-loading-sub">
-            If this takes more than a few seconds, the media host or proxy might be slow.
-          </span>
-        </div>
+      buildSeasons(tvData);
+      loadSeason(id, 1);
+    }
 
-        <iframe
-          id="media-frame"
-          src="about:blank"
-          allowfullscreen
-          allow="fullscreen; picture-in-picture; encrypted-media"
-        ></iframe>
-      </div>
+    // ------------------------------
+    //  BUILD SEASON DROPDOWN
+    // ------------------------------
 
-      <div id="player-error" class="no-src" style="display:none;">
-        No media URL provided.
-      </div>
-    </main>
+    function buildSeasons(tvData) {
+      seasonSelect.innerHTML = "";
+      tvData.seasons.forEach((s) => {
+        if (s.season_number === 0) return; // skip specials
+        const opt = document.createElement("option");
+        opt.value = s.season_number;
+        opt.textContent = `Season ${s.season_number}`;
+        seasonSelect.appendChild(opt);
+      });
 
-    <script>
-      (async () => {
-        const params = new URLSearchParams(window.location.search);
-        const src = params.get("src");
-        const title = params.get("title") || "Untitled";
+      seasonSelect.onchange = () =>
+        loadSeason(currentTMDB_ID, parseInt(seasonSelect.value));
+    }
 
-        const frame = document.getElementById("media-frame");
-        const titleEl = document.getElementById("player-title");
-        const errorEl = document.getElementById("player-error");
-        const frameWrap = document.querySelector(".player-frame-wrap");
-        const openNewTabBtn = document.getElementById("open-new-tab");
-        const loadingEl = document.getElementById("player-loading");
-        const loadingSub = document.getElementById("player-loading-sub");
+    // ------------------------------
+    //  LOAD EPISODES FOR SEASON
+    // ------------------------------
 
-        if (titleEl) titleEl.textContent = title;
+    async function loadSeason(id, seasonNum) {
+      const res = await fetch(
+        `https://api.themoviedb.org/3/tv/${id}/season/${seasonNum}?api_key=${TMDB_KEY}`
+      );
+      const data = await res.json();
 
-        if (!src) {
-          if (frameWrap) frameWrap.style.display = "none";
-          if (errorEl) {
-            errorEl.style.display = "flex";
-            errorEl.textContent = "No media URL provided.";
-          }
-          return;
-        }
+      episodeList.innerHTML = "";
 
-        // Make "open in new tab" always available
-        if (openNewTabBtn) {
-          openNewTabBtn.addEventListener("click", () => {
-            window.open(src, "_blank");
-          });
-        }
+      data.episodes.forEach((ep) => {
+        const row = document.createElement("div");
+        row.className = "episode-row";
 
-        // 1) ENSURE BAREMUX TRANSPORT BEFORE HITTING /scramjet/…
-        try {
-          const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
-          const wispUrl =
-            (location.protocol === "https:" ? "wss" : "ws") +
-            "://" +
-            location.host +
-            "/wisp/";
+        const img = document.createElement("img");
+        img.className = "ep-thumb";
+        img.src = ep.still_path
+          ? IMG_BASE + ep.still_path
+          : "thumbs/placeholder-poster.png";
 
-          if ((await connection.getTransport()) !== "/epoxy/index.mjs") {
-            await connection.setTransport("/epoxy/index.mjs", [{ wisp: wispUrl }]);
-          }
-          console.log("BareMux transport ready in mediaplayer tab");
-        } catch (err) {
-          console.error("Failed to init BareMux transport (mediaplayer)", err);
-          if (loadingSub) {
-            loadingSub.textContent =
-              "Proxy transport failed to init. The page may still load, but some hosts will break.";
-          }
-        }
+        const meta = document.createElement("div");
+        meta.className = "ep-meta";
 
-        // 2) LOADING TIMEOUT HINTS
-        let longTimeout = setTimeout(() => {
-          if (loadingSub) {
-            loadingSub.textContent =
-              "This is taking longer than usual. The media host or proxy might be slow or timing out.";
-          }
-        }, 8000);
+        const epTitle = document.createElement("div");
+        epTitle.className = "ep-title";
+        epTitle.textContent = `E${ep.episode_number} • ${ep.name}`;
 
-        let hardTimeout = setTimeout(() => {
-          if (loadingEl) {
-            loadingEl.style.display = "none";
-          }
-          if (errorEl) {
-            errorEl.style.display = "flex";
-            errorEl.textContent =
-              "The media did not finish loading. It may be blocked, down, or the proxy hit a timeout.";
-          }
-        }, 25000); // 25s hard fail
+        row.appendChild(img);
+        row.appendChild(meta);
+        meta.appendChild(epTitle);
 
-        // 3) SET IFRAME SRC + HANDLE LOAD
-        if (frame) {
-          frame.addEventListener("load", () => {
-            // If we got any kind of load event, kill the loading overlay.
-            if (loadingEl) loadingEl.style.display = "none";
-            clearTimeout(longTimeout);
-            clearTimeout(hardTimeout);
-          });
+        row.onclick = () => {
+          const episodeURL =
+            "/scramjet/https://cinemaos.live/player/" +
+            id +
+            "?s=" +
+            seasonNum +
+            "&e=" +
+            ep.episode_number;
 
-          frame.src = src; // already /scramjet/https://... from media.html
-        }
-      })();
-    </script>
-  </body>
+          playerFrame.src = episodeURL;
+          titleEl.textContent = `${ep.name} (S${seasonNum}E${ep.episode_number})`;
+        };
+
+        episodeList.appendChild(row);
+      });
+    }
+  </script>
+
+  <style>
+    /* Compact horizontal episode list */
+    .episode-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .episode-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 8px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .episode-row:hover {
+      background: #111;
+      transform: scale(1.01);
+    }
+
+    .ep-thumb {
+      width: 120px;
+      height: 68px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .ep-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ep-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+  </style>
+</body>
 </html>
