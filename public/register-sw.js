@@ -1,25 +1,37 @@
-"use strict";
-const stockSW = "./sw.js";
+// register-sw.js
+(async () => {
+  if (!("serviceWorker" in navigator)) return;
 
-/**
- * List of hostnames that are allowed to run serviceworkers on http://
- */
-const swAllowedHostnames = ["localhost", "127.0.0.1"];
+  const SW_URL = "/sw.js";
+  const SW_SCOPE = "/";
 
-/**
- * Global util
- * Used in 404.html and index.html
- */
-async function registerSW() {
-	if (!navigator.serviceWorker) {
-		if (
-			location.protocol !== "https:" &&
-			!swAllowedHostnames.includes(location.hostname)
-		)
-			throw new Error("Service workers cannot be registered without https.");
+  try {
+    const hasController = !!navigator.serviceWorker.controller;
+    const bootstrapped = sessionStorage.getItem("sw_bootstrap_done");
 
-		throw new Error("Your browser doesn't support service workers.");
-	}
+    // FIRST EVER VISIT → register SW → reload once
+    if (!hasController && !bootstrapped) {
+      sessionStorage.setItem("sw_bootstrap_done", "1");
 
-	await navigator.serviceWorker.register(stockSW);
-}
+      try {
+        await navigator.serviceWorker.register(SW_URL, { scope: SW_SCOPE });
+        console.log("[SW] Registered. Reloading once so this tab gets SW control…");
+      } catch (err) {
+        console.error("[SW] Registration failed:", err);
+      }
+
+      location.reload();
+      return;
+    }
+
+    // If after reload there is STILL no controller → proxy won’t work
+    if (!navigator.serviceWorker.controller) {
+      console.warn("[SW] No controller after bootstrap. Proxy may not function this visit.");
+      return;
+    }
+
+    console.log("[SW] Controller active:", navigator.serviceWorker.controller);
+  } catch (err) {
+    console.error("[SW] bootstrap error:", err);
+  }
+})();
