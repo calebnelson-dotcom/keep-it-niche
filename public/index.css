@@ -145,6 +145,33 @@
   font-size: 11px !important;
 }
 
+/* SETTINGS PAGE BUTTON FIX */
+.settings-panel .proxy-btn {
+  font-size: 8px !important;          /* smaller text */
+  padding: 4px 10px !important;       /* less vertical height */
+  border-width: 2px !important;
+  width: auto !important;
+  text-align: center;
+  letter-spacing: 0.04em;
+  font-family: "Press Start 2P", system-ui, sans-serif;
+}
+
+.settings-panel input[type="text"],
+.settings-panel input[type="password"],
+.settings-panel select {
+  font-size: 8px !important;
+  padding: 5px 8px !important;
+  height: auto !important;
+}
+
+.settings-panel label {
+  font-size: 8px !important;
+}
+
+.settings-panel {
+  font-size: 8px !important;
+}
+
 
 /* ========= REST OF YOUR ORIGINAL CSS (UNCHANGED) ========= */
 
