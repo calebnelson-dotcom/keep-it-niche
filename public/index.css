@@ -519,6 +519,44 @@ h1::after {
   color: var(--accent);
 }
 
+/* ===== FIX: GAME GRID 8-COLUMN ===== */
+.game-grid {
+  grid-template-columns: repeat(8, 1fr) !important;
+}
+
+/* ===== FIX: MEDIA + APP GRID NORMAL 6-COLUMN ===== */
+.media-grid,
+.app-grid {
+  grid-template-columns: repeat(6, 1fr) !important;
+}
+
+/* ===== FIX: POSTERS TOO LARGE ===== */
+.poster-thumb {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  max-height: 260px;          /* caps size */
+  overflow: hidden;
+}
+
+.poster-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== FIX: MEDIA CARD MAX WIDTH ===== */
+.media-card {
+  max-width: 200px;           /* stops stretching */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===== FIX: MEDIA GRID CENTER ALIGNMENT ===== */
+.media-grid {
+  justify-items: center;      /* centers each card */
+}
+
+
 /* ========= HOME ========= */
 
 .home-main {
