@@ -1095,4 +1095,32 @@ main.player-main {
   .media-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  /* ============================================================
+   FINAL MEDIA GRID FIX — RESTORES TRUE GRID BEHAVIOR
+============================================================ */
+
+.media-grid {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;     /* center the grid */
+  justify-items: center;
+}
+
+/* Prevent cards from stretching horizontally */
+.media-card {
+  width: 100%;
+  max-width: 180px;   /* you can adjust 160–220px depending on taste */
+}
+
+/* Poster thumbnails stay proportioned */
+.poster-thumb {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  max-height: 260px;
+  overflow: hidden;
+}
 }
