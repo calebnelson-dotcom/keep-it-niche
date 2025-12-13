@@ -83,19 +83,75 @@
 
   <div class="settings-grid">
 
+    <!-- TAB CLOAKING -->
+    <section class="settings-panel">
+      <div class="settings-title">TAB CLOAKING</div>
+
+      <select id="cloak-select" class="settings-select">
+        <option value="">SELECT PRESET</option>
+        <option value="drive">GOOGLE DRIVE</option>
+        <option value="schoology">SCHOOLOGY</option>
+        <option value="docs">GOOGLE DOCS</option>
+        <option value="google">GOOGLE</option>
+        <option value="custom">CUSTOM…</option>
+      </select>
+
+      <div id="custom-cloak-box" style="display:none;margin-top:12px;">
+        <input id="cloak-title" class="settings-input" placeholder="Tab Title" />
+        <input id="cloak-icon" class="settings-input" placeholder="Favicon URL" />
+        <button class="settings-btn" id="apply-custom-cloak">APPLY</button>
+      </div>
+
+      <button class="settings-btn" id="reset-cloak">RESET CLOAK</button>
+    </section>
+
+    <!-- APPEARANCE -->
+    <section class="settings-panel">
+      <div class="settings-title">APPEARANCE</div>
+
+      <select id="theme-select" class="settings-select">
+        <option value="dark">DARK</option>
+        <option value="baby">BLUE</option>
+        <option value="xmas">GREEN</option>
+      </select>
+
+      <select id="accent-select" class="settings-select" style="margin-top:10px;">
+        <option value="green">GREEN</option>
+        <option value="violet">VIOLET</option>
+        <option value="amber">AMBER</option>
+        <option value="white">WHITE</option>
+      </select>
+    </section>
+
+    <!-- BACKGROUND -->
+    <section class="settings-panel">
+      <div class="settings-title">BACKGROUND</div>
+
+      <select id="bg-mode" class="settings-select">
+        <option value="default">CRT GRID</option>
+        <option value="gif-stars">STARRY GIF</option>
+        <option value="custom">CUSTOM IMAGE</option>
+      </select>
+
+      <input id="bg-url" class="settings-input" placeholder="Image URL" style="margin-top:10px;display:none;">
+    </section>
+
+    <!-- SECURITY -->
+    <section class="settings-panel">
+      <div class="settings-title">SECURITY</div>
+      <label><input type="checkbox" id="anti-close-toggle"> ANTI-CLOSE</label>
+      <button class="settings-btn" id="blank-launch">OPEN IN ABOUT:BLANK</button>
+    </section>
+
     <!-- SAVE FILE -->
     <section class="settings-panel">
       <div class="settings-title">SAVE FILE</div>
-
       <button class="settings-btn" id="btn-export">EXPORT SAVE</button>
       <button class="settings-btn" id="btn-import-trigger">IMPORT SAVE</button>
       <input type="file" id="btn-import" accept=".json" hidden>
-
-      <div style="font-size:8px;margin-top:8px;color:var(--fg-dim);">
-        Saves settings + game progress
-      </div>
     </section>
 
+    <!-- INFO -->
     <section class="settings-panel">
       <div class="settings-title">INFO</div>
       <a href="about.html"><button class="settings-btn">ABOUT US</button></a>
@@ -107,57 +163,37 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
+  /* ===== SAVE / IMPORT ===== */
   const exportBtn = document.getElementById("btn-export");
+  const importBtn = document.getElementById("btn-import");
   const importTrigger = document.getElementById("btn-import-trigger");
-  const importInput = document.getElementById("btn-import");
 
-  /* ---------- EXPORT SAVE ---------- */
-  exportBtn.addEventListener("click", () => {
-    const saveData = {};
-
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith("s0lace") || key.startsWith("game_")) {
-        saveData[key] = localStorage.getItem(key);
+  exportBtn.onclick = () => {
+    const data = {};
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith("s0lace") || k.startsWith("game_")) {
+        data[k] = localStorage.getItem(k);
       }
     });
 
-    const blob = new Blob(
-      [JSON.stringify({ version: 1, data: saveData }, null, 2)],
-      { type: "application/json" }
-    );
-
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "s0lace-save.json";
     a.click();
-    URL.revokeObjectURL(a.href);
-  });
+  };
 
-  /* ---------- IMPORT SAVE ---------- */
-  importTrigger.addEventListener("click", () => importInput.click());
-
-  importInput.addEventListener("change", () => {
-    const file = importInput.files[0];
-    if (!file) return;
-
+  importTrigger.onclick = () => importBtn.click();
+  importBtn.onchange = () => {
     const reader = new FileReader();
     reader.onload = () => {
-      try {
-        const json = JSON.parse(reader.result);
-        if (!json.data) throw new Error();
-
-        Object.entries(json.data).forEach(([k, v]) => {
-          localStorage.setItem(k, v);
-        });
-
-        alert("Save imported successfully.");
-        location.reload();
-      } catch {
-        alert("Invalid save file.");
-      }
+      const json = JSON.parse(reader.result);
+      Object.entries(json).forEach(([k,v]) => localStorage.setItem(k,v));
+      alert("Save loaded.");
+      location.reload();
     };
-    reader.readAsText(file);
-  });
+    reader.readAsText(importBtn.files[0]);
+  };
 
 });
 </script>
