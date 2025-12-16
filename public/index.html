@@ -20,7 +20,39 @@
   <script src="global-hub.js" defer></script>
 
   <style>
-    /* bottom-left icons */
+    :root {
+      --header-h: 64px;
+    }
+
+    /* Prevent header overlap */
+    main {
+      padding-top: var(--header-h);
+    }
+
+    /* Proxy fullscreen fix */
+    body.sj-proxied main {
+      padding-top: 0;
+    }
+
+    body.sj-proxied iframe,
+    body.sj-proxied .scramjet-frame,
+    body.sj-proxied .bare-frame {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      z-index: 1;
+    }
+
+    body.sj-proxied .site-header {
+      pointer-events: none;
+    }
+    body.sj-proxied .site-header a {
+      pointer-events: auto;
+    }
+
+    /* Bottom icons */
     #bottom-icons {
       position: fixed;
       bottom: 16px;
@@ -35,19 +67,20 @@
       cursor: pointer;
       opacity: 0.75;
       transition: 0.2s;
-      filter: brightness(0.85);
     }
     #bottom-icons img:hover {
       opacity: 1;
-      filter: brightness(1.2) drop-shadow(0 0 6px var(--accent));
+      filter: drop-shadow(0 0 6px var(--accent));
+    }
+
+    /* Center MOTD */
+    #motd {
+      text-align: center;
+      cursor: pointer;
     }
 
     /* Visitor panel */
-    #visitor-panel {
-      margin-top: 10px;
-      padding-top: 6px;
-    }
-    #visitor-panel .visitor-stats {
+    .visitor-stats {
       display: flex;
       justify-content: space-around;
       padding: 8px 0;
@@ -59,7 +92,6 @@
     .visitor-label {
       font-size: 8px;
       color: var(--fg-dim);
-      margin-bottom: 4px;
     }
     .visitor-number {
       font-size: 14px;
@@ -67,30 +99,19 @@
       text-shadow: 0 0 6px var(--accent);
     }
 
-    /* MOTD centered */
-    #motd {
-      text-align: center;
-    }
-
-    /* Version under logo */
+    /* Version subheader */
     .home-version {
       font-family: "Press Start 2P";
-      font-size: 9px;
+      font-size: 8px;
       color: var(--fg-dim);
-      margin-top: 6px;
+      margin-top: 4px;
       text-align: center;
-    }
-
-    /* 🔒 FIX: header does not block proxied pages */
-    body.sj-proxied .site-header {
-      pointer-events: none;
     }
   </style>
 </head>
 
 <body>
 
-<!-- bottom-left icons -->
 <div id="bottom-icons">
   <img src="thumbs/trello.png" onclick="window.open('https://trello.com/b/GZg1EjXk/s0lace-tracking','_blank')" />
   <img src="thumbs/github.png" onclick="window.open('https://github.com/granthhss0/S0LACE','_blank')" />
@@ -108,11 +129,10 @@
 
 <main class="home-main">
 
-  <!-- CENTER -->
   <section class="home-center">
     <div class="home-logo-title">
       <div class="home-logo-mark">S0LACE</div>
-      <div class="home-version">v1.5.0</div>
+      <div class="home-version">v0.9.4 • stable</div>
     </div>
 
     <section class="home-panel home-proxy-panel">
@@ -132,13 +152,29 @@
   </section>
 
   <!-- POPULAR GAMES (UNCHANGED) -->
-  <!-- (left exactly as provided) -->
-  <!-- ... your popular games section remains here ... -->
+  <section class="home-panel home-popular-panel">
+    <div class="motd-label">POPULAR GAMES</div>
+    <div class="popular-wrap">
+      <div class="popular-track">
+        <a class="popular-pill" href="player.html?game=games/retrobowl/index.html">
+          <span class="pill-thumb" style="background-image:url('thumbs/retrobowl.png')"></span>
+          <span class="pill-name">Retro Bowl</span>
+        </a>
+        <a class="popular-pill" href="player.html?game=games/balatro/index.html">
+          <span class="pill-thumb" style="background-image:url('thumbs/balatro.jpeg')"></span>
+          <span class="pill-name">Balatro</span>
+        </a>
+        <a class="popular-pill" href="player.html?game=games/geometrydash/index.html">
+          <span class="pill-thumb" style="background-image:url('thumbs/geometrydash.png')"></span>
+          <span class="pill-name">Geometry Dash</span>
+        </a>
+      </div>
+    </div>
+  </section>
 
-  <!-- VISITOR COUNTER -->
-  <section class="home-panel" id="visitor-panel">
+  <!-- VISITORS -->
+  <section class="home-panel">
     <div class="motd-label">VISITORS</div>
-
     <div class="visitor-stats">
       <div class="visitor-box">
         <div class="visitor-label">TODAY</div>
@@ -157,7 +193,6 @@
 
 </main>
 
-<!-- MOTD -->
 <script>
 const motdEl = document.getElementById("motd");
 const lines = [
@@ -176,7 +211,13 @@ motdEl.onclick = setRandomMotd;
 setRandomMotd();
 </script>
 
-<!-- 🔥 FIREBASE VISITOR COUNTER -->
+<script>
+if (window.__scramjet || document.querySelector("iframe")) {
+  document.body.classList.add("sj-proxied");
+}
+</script>
+
+<!-- FIREBASE VISITOR COUNTER -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -203,7 +244,7 @@ function weekKey() {
   return "week_" + Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
 }
 
-async function updateCounters(increment=false) {
+async function updateCounters(inc=false) {
   const allRef = ref(db,"visitors/all");
   const todayRef = ref(db,"visitors/today/"+todayKey());
   const weekRef = ref(db,"visitors/week/"+weekKey());
@@ -212,15 +253,15 @@ async function updateCounters(increment=false) {
   const today = (await get(todayRef)).val() || 0;
   const week = (await get(weekRef)).val() || 0;
 
-  if (increment) {
+  if (inc) {
     await set(allRef, all+1);
     await set(todayRef, today+1);
     await set(weekRef, week+1);
   }
 
-  document.getElementById("vis-all").textContent = all + (increment?1:0);
-  document.getElementById("vis-today").textContent = today + (increment?1:0);
-  document.getElementById("vis-week").textContent = week + (increment?1:0);
+  vis-all.textContent = all + (inc?1:0);
+  vis-today.textContent = today + (inc?1:0);
+  vis-week.textContent = week + (inc?1:0);
 }
 
 if (!sessionStorage.getItem("s0lace-counted")) {
@@ -228,13 +269,6 @@ if (!sessionStorage.getItem("s0lace-counted")) {
   updateCounters(true);
 } else {
   updateCounters(false);
-}
-</script>
-
-<!-- detect proxy -->
-<script>
-if (window.__scramjet || location.pathname.includes("/scram/")) {
-  document.body.classList.add("sj-proxied");
 }
 </script>
 
