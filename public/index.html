@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
@@ -24,15 +24,10 @@
       --header-h: 64px;
     }
 
-    /* Prevent header overlap */
-    main {
-      padding-top: var(--header-h);
-    }
+    /* ===== HEADER / PROXY FIX ===== */
+    main { padding-top: var(--header-h); }
 
-    /* Proxy fullscreen fix */
-    body.sj-proxied main {
-      padding-top: 0;
-    }
+    body.sj-proxied main { padding-top: 0; }
 
     body.sj-proxied iframe,
     body.sj-proxied .scramjet-frame,
@@ -46,13 +41,15 @@
     }
 
     body.sj-proxied .site-header {
-      pointer-events: none;
-    }
-    body.sj-proxied .site-header a {
-      pointer-events: auto;
+      transform: translateY(-100%);
+      transition: transform 0.25s ease;
     }
 
-    /* Bottom icons */
+    .site-header {
+      transition: transform 0.25s ease;
+    }
+
+    /* ===== BOTTOM ICONS ===== */
     #bottom-icons {
       position: fixed;
       bottom: 16px;
@@ -73,13 +70,38 @@
       filter: drop-shadow(0 0 6px var(--accent));
     }
 
-    /* Center MOTD */
+    /* ===== CENTER TEXT ===== */
     #motd {
       text-align: center;
       cursor: pointer;
     }
 
-    /* Visitor panel */
+    .home-version {
+      font-family: "Press Start 2P";
+      font-size: 8px;
+      color: var(--fg-dim);
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    /* ===== POPULAR GAMES LOOP ===== */
+    .popular-wrap {
+      overflow: hidden;
+      position: relative;
+    }
+
+    .popular-track {
+      display: flex;
+      width: max-content;
+      animation: popular-scroll 40s linear infinite;
+    }
+
+    @keyframes popular-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* ===== VISITOR PANEL ===== */
     .visitor-stats {
       display: flex;
       justify-content: space-around;
@@ -98,20 +120,12 @@
       color: var(--accent);
       text-shadow: 0 0 6px var(--accent);
     }
-
-    /* Version subheader */
-    .home-version {
-      font-family: "Press Start 2P";
-      font-size: 8px;
-      color: var(--fg-dim);
-      margin-top: 4px;
-      text-align: center;
-    }
   </style>
 </head>
 
 <body>
 
+<!-- Bottom icons -->
 <div id="bottom-icons">
   <img src="thumbs/trello.png" onclick="window.open('https://trello.com/b/GZg1EjXk/s0lace-tracking','_blank')" />
   <img src="thumbs/github.png" onclick="window.open('https://github.com/granthhss0/S0LACE','_blank')" />
@@ -151,11 +165,13 @@
     </section>
   </section>
 
-  <!-- POPULAR GAMES (UNCHANGED) -->
+  <!-- POPULAR GAMES -->
   <section class="home-panel home-popular-panel">
     <div class="motd-label">POPULAR GAMES</div>
     <div class="popular-wrap">
       <div class="popular-track">
+
+        <!-- duplicated set for smooth loop -->
         <a class="popular-pill" href="player.html?game=games/retrobowl/index.html">
           <span class="pill-thumb" style="background-image:url('thumbs/retrobowl.png')"></span>
           <span class="pill-name">Retro Bowl</span>
@@ -168,6 +184,21 @@
           <span class="pill-thumb" style="background-image:url('thumbs/geometrydash.png')"></span>
           <span class="pill-name">Geometry Dash</span>
         </a>
+
+        <!-- duplicate -->
+        <a class="popular-pill" href="player.html?game=games/retrobowl/index.html">
+          <span class="pill-thumb" style="background-image:url('thumbs/retrobowl.png')"></span>
+          <span class="pill-name">Retro Bowl</span>
+        </a>
+        <a class="popular-pill" href="player.html?game=games/balatro/index.html">
+          <span class="pill-thumb" style="background-image:url('thumbs/balatro.jpeg')"></span>
+          <span class="pill-name">Balatro</span>
+        </a>
+        <a class="popular-pill" href="player.html?game=games/geometrydash/index.html">
+          <span class="pill-thumb" style="background-image:url('thumbs/geometrydash.png')"></span>
+          <span class="pill-name">Geometry Dash</span>
+        </a>
+
       </div>
     </div>
   </section>
@@ -193,6 +224,7 @@
 
 </main>
 
+<!-- MOTD -->
 <script>
 const motdEl = document.getElementById("motd");
 const lines = [
@@ -211,65 +243,58 @@ motdEl.onclick = setRandomMotd;
 setRandomMotd();
 </script>
 
+<!-- Proxy detection -->
 <script>
-if (window.__scramjet || document.querySelector("iframe")) {
-  document.body.classList.add("sj-proxied");
-}
+setInterval(() => {
+  const proxied = document.querySelector("iframe,.scramjet-frame,.bare-frame");
+  document.body.classList.toggle("sj-proxied", !!proxied);
+}, 500);
 </script>
 
-<!-- FIREBASE VISITOR COUNTER -->
+<!-- FIREBASE VISITOR COUNTER (FIXED) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = {
+const app = initializeApp({
   apiKey: "AIzaSyBbgy76ThxHaKlOhpiLQ6Nw4ekR1b9t3DA",
   authDomain: "s0lace-web.firebaseapp.com",
   databaseURL: "https://s0lace-web-default-rtdb.firebaseio.com",
-  projectId: "s0lace-web",
-  storageBucket: "s0lace-web.firebasestorage.app",
-  messagingSenderId: "13647464646",
-  appId: "1:13647464646:web:1740543331353695faafc7"
-};
+  projectId: "s0lace-web"
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
-}
-function weekKey() {
-  const d = new Date();
-  const onejan = new Date(d.getFullYear(),0,1);
-  return "week_" + Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+function todayKey(){return new Date().toISOString().split("T")[0];}
+function weekKey(){
+  const d=new Date(),j=new Date(d.getFullYear(),0,1);
+  return "week_"+Math.ceil((((d-j)/86400000)+j.getDay()+1)/7);
 }
 
-async function updateCounters(inc=false) {
-  const allRef = ref(db,"visitors/all");
-  const todayRef = ref(db,"visitors/today/"+todayKey());
-  const weekRef = ref(db,"visitors/week/"+weekKey());
+async function updateCounters(inc=false){
+  const allRef=ref(db,"visitors/all");
+  const todayRef=ref(db,"visitors/today/"+todayKey());
+  const weekRef=ref(db,"visitors/week/"+weekKey());
 
-  const all = (await get(allRef)).val() || 0;
-  const today = (await get(todayRef)).val() || 0;
-  const week = (await get(weekRef)).val() || 0;
+  const all=(await get(allRef)).val()||0;
+  const today=(await get(todayRef)).val()||0;
+  const week=(await get(weekRef)).val()||0;
 
-  if (inc) {
-    await set(allRef, all+1);
-    await set(todayRef, today+1);
-    await set(weekRef, week+1);
+  if(inc){
+    await set(allRef,all+1);
+    await set(todayRef,today+1);
+    await set(weekRef,week+1);
   }
 
-  vis-all.textContent = all + (inc?1:0);
-  vis-today.textContent = today + (inc?1:0);
-  vis-week.textContent = week + (inc?1:0);
+  document.getElementById("vis-all").textContent = all + (inc?1:0);
+  document.getElementById("vis-today").textContent = today + (inc?1:0);
+  document.getElementById("vis-week").textContent = week + (inc?1:0);
 }
 
-if (!sessionStorage.getItem("s0lace-counted")) {
+if(!sessionStorage.getItem("s0lace-counted")){
   sessionStorage.setItem("s0lace-counted","1");
   updateCounters(true);
-} else {
-  updateCounters(false);
-}
+}else updateCounters(false);
 </script>
 
 </body>
