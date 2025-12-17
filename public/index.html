@@ -20,14 +20,16 @@
   <script src="global-hub.js" defer></script>
 
   <style>
-    :root {
-      --header-h: 64px;
+    main {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
-    /* ===== HEADER / PROXY FIX ===== */
-    main { padding-top: var(--header-h); }
-
-    body.sj-proxied main { padding-top: 0; }
+    body.sj-proxied main {
+      padding: 0;
+    }
 
     body.sj-proxied iframe,
     body.sj-proxied .scramjet-frame,
@@ -40,303 +42,152 @@
       z-index: 1;
     }
 
-    body.sj-proxied .site-header {
-      transform: translateY(-100%);
-      transition: transform 0.25s ease;
-    }
-
-    .site-header {
-      transition: transform 0.25s ease;
-    }
-
-    /* ===== BOTTOM ICONS ===== */
-    #bottom-icons {
-      position: fixed;
-      bottom: 16px;
-      left: 16px;
+    /* Center layout */
+    .home-center {
       display: flex;
-      gap: 12px;
-      z-index: 999;
-    }
-    #bottom-icons img {
-      width: 28px;
-      height: 28px;
-      cursor: pointer;
-      opacity: 0.75;
-      transition: 0.2s;
-    }
-    #bottom-icons img:hover {
-      opacity: 1;
-      filter: drop-shadow(0 0 6px var(--accent));
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      width: 100%;
+      max-width: 640px;
+      padding: 20px;
     }
 
-    /* ===== CENTER TEXT ===== */
-    #motd {
+    .home-logo-mark {
+      font-family: "Press Start 2P";
+      font-size: 48px;
+      color: var(--fg);
       text-align: center;
-      cursor: pointer;
     }
 
     .home-version {
       font-family: "Press Start 2P";
-      font-size: 8px;
+      font-size: 10px;
       color: var(--fg-dim);
-      margin-top: 4px;
+      margin-top: 6px;
       text-align: center;
     }
 
-    /* ===== POPULAR GAMES LOOP ===== */
-    .popular-wrap {
-      overflow: hidden;
-      position: relative;
+    /* Proxy search */
+    .home-proxy-panel {
+      width: 100%;
+      padding: 22px;
+      background: var(--panel);
+      border: 2px solid var(--border-hard);
     }
 
-    .popular-track {
+    #sj-form {
       display: flex;
-      width: max-content;
-      animation: popular-scroll 40s linear infinite;
+      gap: 10px;
+      margin-top: 14px;
     }
 
-    @keyframes popular-scroll {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
+    #sj-address {
+      flex: 1;
+      padding: 14px;
+      font-size: 16px;
+      font-family: inherit;
     }
 
-    /* ===== VISITOR PANEL ===== */
+    .proxy-btn {
+      padding: 14px 22px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    /* Visitor panel */
     .visitor-stats {
       display: flex;
-      justify-content: space-around;
-      padding: 8px 0;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 12px;
     }
+
     .visitor-box {
       text-align: center;
       font-family: "Press Start 2P";
+      flex: 1;
     }
+
     .visitor-label {
       font-size: 8px;
       color: var(--fg-dim);
     }
+
     .visitor-number {
       font-size: 14px;
       color: var(--accent);
       text-shadow: 0 0 6px var(--accent);
+      margin-top: 4px;
     }
   </style>
 </head>
 
 <body>
 
-<!-- Bottom icons -->
-<div id="bottom-icons">
-  <img src="thumbs/trello.png" onclick="window.open('https://trello.com/b/GZg1EjXk/s0lace-tracking','_blank')" />
-  <img src="thumbs/github.png" onclick="window.open('https://github.com/granthhss0/S0LACE','_blank')" />
-</div>
-
+<!-- RIGHT SIDE ICON HEADER (unchanged logic) -->
 <nav class="side-header">
-  <a href="index.html" class="side-icon" data-icon="home" title="Home">
-    <img />
-  </a>
-  <a href="games.html" class="side-icon" data-icon="games" title="Games">
-    <img />
-  </a>
-  <a href="media.html" class="side-icon" data-icon="media" title="Media">
-    <img />
-  </a>
-  <a href="settings.html" class="side-icon" data-icon="settings" title="Settings">
-    <img />
-  </a>
+  <a href="index.html" class="side-icon" data-icon="home"><img /></a>
+  <a href="games.html" class="side-icon" data-icon="games"><img /></a>
+  <a href="media.html" class="side-icon" data-icon="media"><img /></a>
+  <a href="settings.html" class="side-icon" data-icon="settings"><img /></a>
 </nav>
 
-
-
-<main class="home-main">
+<main>
 
   <section class="home-center">
-    <div class="home-logo-title">
+
+    <!-- LOGO -->
+    <div>
       <div class="home-logo-mark">S0LACE</div>
       <div class="home-version">v1.0.5</div>
     </div>
 
-    <section class="home-panel home-proxy-panel">
-      <div id="motd">loading</div>
+    <!-- PROXY -->
+    <section class="home-proxy-panel">
+      <div class="proxy-label">PR0XY &gt;</div>
 
-      <div style="margin-top:14px;">
-        <div class="proxy-label">PR0XY &gt;</div>
-        <form id="sj-form">
-          <input id="sj-search-engine" value="https://www.google.com/search?q=%s" type="hidden" />
-          <input id="sj-address" type="text" placeholder="type a url or search..." />
-          <button class="proxy-btn" type="submit">GO</button>
-        </form>
-        <div id="sj-error"></div>
-        <pre id="sj-error-code"></pre>
+      <form id="sj-form">
+        <input
+          id="sj-search-engine"
+          value="https://www.google.com/search?q=%s"
+          type="hidden"
+        />
+        <input
+          id="sj-address"
+          type="text"
+          placeholder="type a url or search…"
+        />
+        <button class="proxy-btn" type="submit">GO</button>
+      </form>
+
+      <div id="sj-error"></div>
+      <pre id="sj-error-code"></pre>
+    </section>
+
+    <!-- VISITORS -->
+    <section class="home-panel" style="width:100%;">
+      <div class="visitor-stats">
+        <div class="visitor-box">
+          <div class="visitor-label">TODAY</div>
+          <div id="vis-today" class="visitor-number">—</div>
+        </div>
+        <div class="visitor-box">
+          <div class="visitor-label">THIS WEEK</div>
+          <div id="vis-week" class="visitor-number">—</div>
+        </div>
+        <div class="visitor-box">
+          <div class="visitor-label">ALL TIME</div>
+          <div id="vis-all" class="visitor-number">—</div>
+        </div>
       </div>
     </section>
-  </section>
 
-  <!-- POPULAR GAMES -->
-  <section class="home-panel home-popular-panel">
-    <div class="motd-label">POPULAR GAMES</div>
-    <div class="popular-wrap">
-      <div class="popular-track">
-
-      <a class="popular-pill" href="player.html?game=games/retrobowl/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/retrobowl.png')"></span>
-        <span class="pill-name">Retro Bowl</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/balatro/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/balatro.jpeg')"></span>
-        <span class="pill-name">Balatro</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/geometrydash/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/geometrydash.png')"></span>
-        <span class="pill-name">Geometry Dash</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/monkey-mart/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/monkey-mart.jpeg')"></span>
-        <span class="pill-name">Monkey Mart</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/level-devil/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/leveldevil.jpeg')"></span>
-        <span class="pill-name">Level Devil</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/deadlydescent/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/deadlydescent.jpeg')"></span>
-        <span class="pill-name">Deadly Descentspan>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/gladdihoppers.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/gladdihoppers.png')"></span>
-        <span class="pill-name">Gladihoppers</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/snow-rider/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/snow-rider.jpeg')"></span>
-        <span class="pill-name">Snow Rider 3D</span>
-      </a>
-
-
-      <a class="popular-pill" href="player.html?game=games/drift-boss/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/drift-boss.jpeg')"></span>
-        <span class="pill-name">Drift Boss</span>
-      </a>
-
-       <a class="popular-pill" href="player.html?game=games/retrobowl/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/retrobowl.png')"></span>
-        <span class="pill-name">Retro Bowl</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/balatro/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/balatro.jpeg')"></span>
-        <span class="pill-name">Balatro</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/geometrydash/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/geometrydash.png')"></span>
-        <span class="pill-name">Geometry Dash</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/monkey-mart/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/monkey-mart.jpeg')"></span>
-        <span class="pill-name">Monkey Mart</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/level-devil/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/leveldevil.jpeg')"></span>
-        <span class="pill-name">Level Devil</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/deadlydescent/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/deadlydescent.jpeg')"></span>
-        <span class="pill-name">Deadly Descentspan>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/gladdihoppers.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/gladdihoppers.png')"></span>
-        <span class="pill-name">Gladihoppers</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/snow-rider/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/snow-rider.jpeg')"></span>
-        <span class="pill-name">Snow Rider 3D</span>
-      </a>
-
-      <!-- LOOP 2 -->
-      <a class="popular-pill" href="player.html?game=games/retrobowl/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/retrobowl.png')"></span>
-        <span class="pill-name">Retro Bowl</span>
-      </a>
-
-      <a class="popular-pill" href="player.html?game=games/drift-boss/index.html">
-        <span class="pill-thumb" style="background-image:url('thumbs/drift-boss.jpeg')"></span>
-        <span class="pill-name">Drift Boss</span>
-      </a>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- VISITORS -->
-  <section class="home-panel">
-    <div class="motd-label">VISITORS</div>
-    <div class="visitor-stats">
-      <div class="visitor-box">
-        <div class="visitor-label">TODAY</div>
-        <div id="vis-today" class="visitor-number">—</div>
-      </div>
-      <div class="visitor-box">
-        <div class="visitor-label">THIS WEEK</div>
-        <div id="vis-week" class="visitor-number">—</div>
-      </div>
-      <div class="visitor-box">
-        <div class="visitor-label">ALL TIME</div>
-        <div id="vis-all" class="visitor-number">—</div>
-      </div>
-    </div>
   </section>
 
 </main>
 
-<!-- MOTD -->
-<script>
-const motdEl = document.getElementById("motd");
-const lines = [
-  "any movie or show on media",
-  "why are people actually using this site",
-  "shout out to aurababy and 55gms",
-  "if we average 2500 visitors per day im adding ads and selling out",
-  "made during school",
-  "stop giving me stupid suggestions",
-  "why are people actually using this site",
-  "as of 12/15 we are somehow averaging 500 viewer wth",
-  "rip trinity",
-  "what do yall know about moonlight",
-  "need to finish adding custom domains",
-  "s0lace discord???",
-  "it welcome to derry finale was peak",
-  "bro how are 500 people using this stupid site",
-  "coding is confuzzling",
-  "school admin im sowy for this site"
-];
-function setRandomMotd() {
-  motdEl.textContent = lines[Math.floor(Math.random() * lines.length)];
-}
-motdEl.onclick = setRandomMotd;
-setRandomMotd();
-</script>
-
-<script>
-document.querySelectorAll(".side-icon").forEach(a => {
-  if (a.href === location.href) a.classList.add("active");
-});
-</script>
-
-
-
-<!-- Proxy detection -->
+<!-- PROXY DETECTION -->
 <script>
 setInterval(() => {
   const proxied = document.querySelector("iframe,.scramjet-frame,.bare-frame");
@@ -344,8 +195,28 @@ setInterval(() => {
 }, 500);
 </script>
 
+<!-- SIDE ICON COLOR LOGIC -->
+<script>
+function getAccent() {
+  return localStorage.getItem("s0laceAccent") || "gray";
+}
 
-<!-- FIREBASE VISITOR COUNTER (FIXED) -->
+function updateSideIcons() {
+  const accent = getAccent();
+  document.querySelectorAll(".side-icon").forEach(link => {
+    const icon = link.dataset.icon;
+    const img = link.querySelector("img");
+    const active = link.href === location.href;
+    link.classList.toggle("active", active);
+    img.src = `thumbs/${icon}/${active ? accent : "gray"}.png`;
+  });
+}
+
+updateSideIcons();
+window.addEventListener("storage", updateSideIcons);
+</script>
+
+<!-- FIREBASE VISITOR COUNTER (UNCHANGED LOGIC) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -359,7 +230,7 @@ const app = initializeApp({
 
 const db = getDatabase(app);
 
-function todayKey(){return new Date().toISOString().split("T")[0];}
+function todayKey(){ return new Date().toISOString().split("T")[0]; }
 function weekKey(){
   const d=new Date(),j=new Date(d.getFullYear(),0,1);
   return "week_"+Math.ceil((((d-j)/86400000)+j.getDay()+1)/7);
@@ -380,9 +251,9 @@ async function updateCounters(inc=false){
     await set(weekRef,week+1);
   }
 
-  document.getElementById("vis-all").textContent = all + (inc?1:0);
-  document.getElementById("vis-today").textContent = today + (inc?1:0);
-  document.getElementById("vis-week").textContent = week + (inc?1:0);
+  vis-all.textContent = all + (inc?1:0);
+  vis-today.textContent = today + (inc?1:0);
+  vis-week.textContent = week + (inc?1:0);
 }
 
 if(!sessionStorage.getItem("s0lace-counted")){
@@ -390,32 +261,6 @@ if(!sessionStorage.getItem("s0lace-counted")){
   updateCounters(true);
 }else updateCounters(false);
 </script>
-
-<script>
-function getAccent() {
-  return localStorage.getItem("s0laceAccent") || "gray";
-}
-
-function updateSideIcons() {
-  const accent = getAccent();
-
-  document.querySelectorAll(".side-icon").forEach(link => {
-    const icon = link.dataset.icon; // home, games, media, settings
-    const img = link.querySelector("img");
-    const active = link.classList.contains("active");
-
-    img.src = `thumbs/${icon}/${active ? accent : "gray"}.png`;
-  });
-}
-
-document.querySelectorAll(".side-icon").forEach(link => {
-  if (link.href === location.href) link.classList.add("active");
-});
-
-updateSideIcons();
-window.addEventListener("storage", updateSideIcons);
-</script>
-
 
 </body>
 </html>
