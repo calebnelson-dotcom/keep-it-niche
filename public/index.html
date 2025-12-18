@@ -240,7 +240,7 @@ if ("getBattery" in navigator) {
       const charging = battery.charging;
 
       batteryEl.textContent =
-        (charging ? "⚡" : "🔋") + " " + percent + "%";
+        (charging ? "" : "") + " " + percent + "%";
 
       batteryEl.style.color =
         percent <= 15 ? "#ff5555" : "var(--accent)";
@@ -253,7 +253,7 @@ if ("getBattery" in navigator) {
   });
 } else {
   // API not supported (Safari / Firefox)
-  batteryEl.textContent = "🔋 N/A";
+  batteryEl.textContent = " N/A";
 }
 </script>
 
