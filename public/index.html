@@ -259,7 +259,6 @@ if ("getBattery" in navigator) {
 
 
 
-<!-- FIREBASE VISITORS (FIXED) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -279,40 +278,41 @@ const elWeek = document.getElementById("vis-week");
 
 const todayKey = () => new Date().toISOString().split("T")[0];
 const weekKey = () => {
-  const d=new Date(),j=new Date(d.getFullYear(),0,1);
-  return "week_"+Math.ceil((((d-j)/86400000)+j.getDay()+1)/7);
+  const d = new Date(), j = new Date(d.getFullYear(),0,1);
+  return "week_" + Math.ceil((((d - j) / 86400000) + j.getDay() + 1) / 7);
 };
 
-let incremented = false;
+/* ===== READ ONLY ===== */
+async function readCounters() {
+  const [a,t,w] = await Promise.all([
+    get(ref(db,"visitors/all")).then(s=>s.val()||0),
+    get(ref(db,"visitors/today/"+todayKey())).then(s=>s.val()||0),
+    get(ref(db,"visitors/week/"+weekKey())).then(s=>s.val()||0)
+  ]);
 
-if (!sessionStorage.getItem("s0lace-counted")) {
+  elAll.textContent = a;
+  elToday.textContent = t;
+  elWeek.textContent = w;
+}
+
+/* ===== INCREMENT ONCE PER SESSION ===== */
+async function incrementOnce() {
+  if (sessionStorage.getItem("s0lace-counted")) return;
+
   sessionStorage.setItem("s0lace-counted","1");
-  incremented = true;
-  runTransaction(ref(db,"visitors/all"), v => (v||0)+1);
-  runTransaction(ref(db,"visitors/today/"+todayKey()), v => (v||0)+1);
-  runTransaction(ref(db,"visitors/week/"+weekKey()), v => (v||0)+1);
+
+  await Promise.all([
+    runTransaction(ref(db,"visitors/all"), v => (v || 0) + 1),
+    runTransaction(ref(db,"visitors/today/"+todayKey()), v => (v || 0) + 1),
+    runTransaction(ref(db,"visitors/week/"+weekKey()), v => (v || 0) + 1)
+  ]);
 }
 
-async function render() {
-  try {
-    let [a,t,w] = await Promise.all([
-      get(ref(db,"visitors/all")).then(s=>s.val()||0),
-      get(ref(db,"visitors/today/"+todayKey())).then(s=>s.val()||0),
-      get(ref(db,"visitors/week/"+weekKey())).then(s=>s.val()||0)
-    ]);
-
-    if (incremented) { a++; t++; w++; }
-
-    elAll.textContent = a;
-    elToday.textContent = t;
-    elWeek.textContent = w;
-  } catch {
-    elAll.textContent = elToday.textContent = elWeek.textContent = "—";
-  }
-}
-
-render();
+/* ===== INIT ===== */
+await incrementOnce();
+await readCounters();
 </script>
+
 
 </body>
 </html>
