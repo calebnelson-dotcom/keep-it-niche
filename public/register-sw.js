@@ -6,32 +6,30 @@
   const SW_SCOPE = "/";
 
   try {
-    const hasController = !!navigator.serviceWorker.controller;
-    const bootstrapped = sessionStorage.getItem("sw_bootstrap_done");
-
-    // FIRST EVER VISIT → register SW → reload once
-    if (!hasController && !bootstrapped) {
-      sessionStorage.setItem("sw_bootstrap_done", "1");
-
-      try {
-        await navigator.serviceWorker.register(SW_URL, { scope: SW_SCOPE });
-        console.log("[SW] Registered. Reloading once so this tab gets SW control…");
-      } catch (err) {
-        console.error("[SW] Registration failed:", err);
-      }
-
-      location.reload();
-      return;
-    }
-
-    // If after reload there is STILL no controller → proxy won’t work
+    // Check if the SW is already in control
     if (!navigator.serviceWorker.controller) {
-      console.warn("[SW] No controller after bootstrap. Proxy may not function this visit.");
-      return;
+      const registration = await navigator.serviceWorker.getRegistration(SW_SCOPE);
+      
+      if (registration) {
+        // SW exists but isn't controlling this tab yet. 
+        // Force it to activate and then reload.
+        console.log("[SW] Found registration but no controller. Activating...");
+        location.reload();
+        return;
+      } else {
+        // FIRST EVER VISIT
+        console.log("[SW] Registering for the first time...");
+        await navigator.serviceWorker.register(SW_URL, { scope: SW_SCOPE });
+        
+        // Wait for the SW to be ready before reloading
+        await navigator.serviceWorker.ready;
+        location.reload();
+        return;
+      }
     }
 
-    console.log("[SW] Controller active:", navigator.serviceWorker.controller);
+    console.log("[SW] Controller active:", navigator.serviceWorker.controller.scriptURL);
   } catch (err) {
-    console.error("[SW] bootstrap error:", err);
+    console.error("[SW] Bootstrap error:", err);
   }
 })();
