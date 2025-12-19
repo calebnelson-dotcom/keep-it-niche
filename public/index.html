@@ -13,7 +13,6 @@
 <link rel="stylesheet" href="index.css" />
 
 <script src="/scram/scramjet.all.js"></script>
-<script src="/register-sw.js" defer></script>
 <script src="/global-hub.js" defer></script>
 
 <style>
@@ -122,29 +121,31 @@ if(navigator.getBattery){
   });
 }
 
-// --- PROXY HANDLER ---
-document.getElementById("sj-form").addEventListener("submit", e => {
+// --- PROXY HANDLER --//
+const form = document.getElementById("sj-form");
+const loader = document.getElementById("proxy-loader");
+
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const address = document.getElementById("sj-address").value.trim();
-  if(!address) return;
 
+  const input = document.getElementById("sj-address");
   const engine = document.getElementById("sj-search-engine").value;
-  const url = /^https?:\/\//i.test(address) ? address : engine.replace("%s", encodeURIComponent(address));
+  const value = input.value.trim();
+  if (!value) return;
 
-  // Show the loader screen
-  document.getElementById('proxy-loader').style.display = 'flex';
+  const url = /^https?:\/\//i.test(value)
+    ? value
+    : engine.replace("%s", encodeURIComponent(value));
 
-  // Standard Scramjet call
-  if (typeof scramjet !== 'undefined') {
-      scramjet.open(url);
-  } else if (window.scramjet) {
-      window.scramjet.open(url);
-  } else {
-      // If scripts still fail to find the original location
-      setTimeout(() => {
-        document.getElementById('proxy-loader').style.display = 'none';
-        alert("Scramjet engine not initialized. Check /scram/ paths.");
-      }, 1500);
+  loader.style.display = "flex";
+
+  try {
+    await waitForScramjet();
+    scramjet.open(url);
+  } catch (err) {
+    loader.style.display = "none";
+    alert("Proxy failed to start. Reload the page.");
+    console.error(err);
   }
 });
 </script>
@@ -186,6 +187,34 @@ async function initStats() {
 }
 initStats();
 </script>
+
+    <script>
+async function waitForScramjet() {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const timer = setInterval(() => {
+      if (window.scramjet && scramjet.open) {
+        clearInterval(timer);
+        resolve();
+      }
+      if (Date.now() - start > 5000) {
+        clearInterval(timer);
+        reject("Scramjet timeout");
+      }
+    }, 50);
+  });
+}
+</script>
+
+    <script>
+const obs = new MutationObserver(() => {
+  if (document.querySelector(".scramjet-frame, iframe")) {
+    document.getElementById("proxy-loader").style.display = "none";
+  }
+});
+obs.observe(document.body, { childList: true, subtree: true });
+</script>
+
 
 </body>
 </html>
