@@ -1329,6 +1329,25 @@ main.player-main {
   border: none;
 }
 
+/* Add this to the bottom of your index.css */
+
+.home-panel, .account-box, .settings-panel {
+    border-radius: 24px; /* Matches your game-thumb curve */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    background: rgba(8, 8, 8, 0.8);
+}
+
+.account-input {
+    border-radius: 50px !important; /* Pill shape for search/inputs */
+    padding: 10px 20px !important;
+}
+
+.account-btn, .proxy-btn, .quick-btn {
+    border-radius: 50px !important; /* Pill shape for buttons */
+    text-transform: uppercase;
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 1024px) {
