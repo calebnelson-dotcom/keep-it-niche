@@ -56,8 +56,8 @@
       
       .copy-btn { 
         position: absolute; top: 10px; right: 10px; 
-        background: #333; color: #fff; border: none; 
-        padding: 4px 8px; border-radius: 5px; cursor: pointer; font-size: 10px; 
+        background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); 
+        padding: 4px 8px; border-radius: 5px; cursor: pointer; font-size: 10px; backdrop-filter: blur(5px);
       }
 
       .user-message { align-self: flex-end; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; }
@@ -75,21 +75,21 @@
         color: white; padding: 15px; border-radius: 12px; outline: none; font-size: 14px;
       }
 
-      .img-btn {
-        background: #111; color: white; border: 1px solid #333;
-        width: 45px; height: 45px; border-radius: 50%;
+      /* Glass Buttons */
+      .glass-btn {
+        background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid rgba(255, 255, 255, 0.1);
+        width: 48px; height: 48px; border-radius: 14px;
         cursor: pointer; display: flex; align-items: center; justify-content: center;
-        transition: 0.2s;
+        transition: 0.2s; backdrop-filter: blur(10px); flex-shrink: 0;
       }
-      .img-btn:hover { border-color: #fff; }
+      .glass-btn:hover { background: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.3); }
+      .glass-btn svg { width: 20px; height: 20px; }
 
-      #img-preview { height: 40px; border-radius: 5px; display: none; border: 1px solid #00ff7f; margin-right: 10px; }
+      #send-btn { background: #fff; color: #000; border: none; }
+      #send-btn:hover { background: #e0e0e0; }
+      #send-btn.stop-mode { background: #ff4444; color: #fff; }
 
-      #send-btn {
-        background: #fff; color: #000; border: none;
-        padding: 0 25px; height: 45px; border-radius: 12px;
-        font-weight: bold; cursor: pointer;
-      }
+      #img-preview { height: 40px; border-radius: 8px; display: none; border: 1px solid #00ff7f; margin-right: 10px; }
     </style>
   </head>
 
@@ -108,12 +108,14 @@
         <div id="ai-status" class="ai-loading">S0LACE IS THINKING...</div>
         <div class="chat-input-area">
           <input type="file" id="file-input" accept="image/*" style="display:none">
-          <button class="img-btn" onclick="document.getElementById('file-input').click()">
+          <button class="glass-btn" onclick="document.getElementById('file-input').click()">
             <i data-lucide="paperclip"></i>
           </button>
           <img id="img-preview" src="">
           <input type="text" id="user-input" placeholder="Type here..." autocomplete="off">
-          <button id="send-btn">SEND</button>
+          <button id="send-btn" class="glass-btn">
+            <i data-lucide="send" id="btn-icon"></i>
+          </button>
         </div>
       </div>
     </main>
@@ -122,16 +124,18 @@
       lucide.createIcons();
 
       const API_URL = "/api/ai";
-
       const historyBox = document.getElementById('chat-history');
       const userInput = document.getElementById('user-input');
       const sendBtn = document.getElementById('send-btn');
+      const btnIcon = document.getElementById('btn-icon');
       const aiStatus = document.getElementById('ai-status');
       const fileInput = document.getElementById('file-input');
       const imgPreview = document.getElementById('img-preview');
 
       let sessionMessages = JSON.parse(localStorage.getItem('solace_chat_history')) || [];
       let currentImageData = null;
+      let isTyping = false;
+      let stopTyping = false;
 
       fileInput.onchange = e => {
         const file = e.target.files[0];
@@ -146,16 +150,33 @@
       };
 
       async function typeEffect(element, text) {
+        isTyping = true;
+        stopTyping = false;
+        sendBtn.classList.add('stop-mode');
+        lucide.createIcons({attrs: {'data-lucide': 'square'}, nameAttr: 'data-lucide', icons: {square: lucide.Square}});
+        btnIcon.setAttribute('data-lucide', 'square');
+        lucide.createIcons();
+
         let currentText = "";
         const words = text.split(" ");
         for (const word of words) {
+          if (stopTyping) break;
           currentText += word + " ";
           element.innerHTML = marked.parse(currentText);
           element.querySelectorAll('pre').forEach(pre => addCopyButton(pre));
           historyBox.scrollTop = historyBox.scrollHeight;
-          await new Promise(r => setTimeout(r, 20)); 
+          await new Promise(r => setTimeout(r, 10)); // ULTRA FAST
         }
+        
         hljs.highlightAll();
+        resetSendButton();
+      }
+
+      function resetSendButton() {
+        isTyping = false;
+        sendBtn.classList.remove('stop-mode');
+        btnIcon.setAttribute('data-lucide', 'send');
+        lucide.createIcons();
       }
 
       function addCopyButton(pre) {
@@ -186,6 +207,11 @@
       }
 
       async function askAI() {
+        if (isTyping) {
+          stopTyping = true;
+          return;
+        }
+
         const text = userInput.value.trim();
         if (!text && !currentImageData) return;
 
@@ -215,7 +241,6 @@
 
           const data = await response.json();
 
-          // FIX: Added safety check to prevent "undefined reading 0"
           if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
             const aiText = data.candidates[0].content.parts[0].text;
             aiStatus.style.display = 'none';
@@ -224,11 +249,12 @@
             sessionMessages.push({ role: 'model', parts: [{ text: aiText }] });
             localStorage.setItem('solace_chat_history', JSON.stringify(sessionMessages));
           } else {
-            throw new Error(data.error ? data.error.message : "Invalid response from AI");
+            throw new Error(data.error ? data.error.message : "Invalid response");
           }
         } catch (error) {
           aiStatus.style.display = 'none';
           renderMessage("SYSTEM ERROR: " + error.message, 'ai-message');
+          resetSendButton();
         } finally {
           currentImageData = null;
           imgPreview.style.display = 'none';
@@ -252,7 +278,7 @@
       if (sessionMessages.length > 0) {
         sessionMessages.forEach(m => renderMessage(m.parts[0].text, m.role === 'user' ? 'user-message' : 'ai-message'));
       } else {
-        renderMessage("# S0LACE AI\nReady for input.", 'ai-message');
+        renderMessage("# S0LACE AI\nHello. Ready for input.", 'ai-message');
       }
       updateSideIcons();
     </script>
