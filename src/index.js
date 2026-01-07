@@ -3,13 +3,11 @@ import { fileURLToPath } from "url";
 import { hostname } from "node:os";
 import { server as wisp, logging } from "@mercuryworkshop/wisp-js/server";
 import Fastify from "fastify";
-import { aiRoutes } from "./ai.js";
 import fastifyStatic from "@fastify/static";
 
 import { scramjetPath } from "@mercuryworkshop/scramjet/path";
 import { epoxyPath } from "@mercuryworkshop/epoxy-transport";
 import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
-import { handleAI } from "./ai.js";
 
 const publicPath = fileURLToPath(new URL("../public/", import.meta.url));
 
