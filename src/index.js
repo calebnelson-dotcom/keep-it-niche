@@ -3,6 +3,8 @@ import { fileURLToPath } from "url";
 import { hostname } from "node:os";
 import { server as wisp, logging } from "@mercuryworkshop/wisp-js/server";
 import Fastify from "fastify";
+import express from "express";
+import aiRoutes from "./ai.js";
 import fastifyStatic from "@fastify/static";
 
 import { scramjetPath } from "@mercuryworkshop/scramjet/path";
@@ -10,8 +12,11 @@ import { epoxyPath } from "@mercuryworkshop/epoxy-transport";
 import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
 import { handleAI } from "./ai.js";
 
-app.post("/api/ai", handleAI);
 const publicPath = fileURLToPath(new URL("../public/", import.meta.url));
+app.post("/api/ai", handleAI);
+app.use(express.json());
+app.use("/api", aiRoutes);
+
 
 // Wisp Configuration
 logging.set_level(logging.NONE);
