@@ -26,30 +26,31 @@
         height: 100vh; width: 100%;
       }
 
-      /* TOP SECTION */
+      /* TOP SECTION: 85/15 SPLIT */
       .content-split {
         display: flex;
         flex: 1; 
-        padding: 20px 20px 0 20px;
-        gap: 20px;
+        padding: 15px 15px 0 15px;
+        gap: 15px;
         overflow: hidden;
       }
 
-      /* LEFT SQUARE AD - 30% WIDTH */
+      /* LEFT SQUARE AD - 15% WIDTH */
       .ad-sidebar {
-        flex: 0 0 30%; /* Fixed at 30% */
+        flex: 0 0 15%; 
+        min-width: 120px; /* Ensures ad doesn't disappear entirely */
         background: #050505;
-        border: 2px solid #1a1a1a;
-        border-radius: 18px;
+        border: 1px solid #1a1a1a;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
       }
 
-      /* RIGHT GAME PLAYER - 70% WIDTH */
+      /* RIGHT GAME PLAYER - 85% WIDTH */
       .player-frame-wrap {
-        flex: 0 0 70%; /* Fixed at 70% */
+        flex: 0 0 85%; 
         border-radius: 18px; 
         overflow: hidden;
         background: #000;
@@ -61,43 +62,42 @@
         width: 100%; height: 100%; border: none; display: block;
       }
 
-      /* BUTTON BAR */
+      /* BUTTON BAR - COMPACT */
       .player-actions {
-        height: 80px;
+        height: 60px;
         display: flex; align-items: center; justify-content: center;
-        gap: 20px;
+        gap: 15px;
       }
 
       .player-actions button {
         background: rgba(255, 255, 255, 0.08);
         color: white; border: 1px solid rgba(255, 255, 255, 0.15);
-        width: 50px; height: 50px;
+        width: 40px; height: 40px;
         border-radius: 50%;
-        font-size: 20px; cursor: pointer;
+        font-size: 18px; cursor: pointer;
         transition: all 0.2s ease;
         display: flex; align-items: center; justify-content: center;
       }
-      .player-actions button:hover { background: rgba(255, 255, 255, 0.15); transform: scale(1.1); }
+      .player-actions button:hover { background: rgba(255, 255, 255, 0.15); transform: scale(1.05); }
 
-      /* BOTTOM HORIZONTAL AD */
+      /* BOTTOM HORIZONTAL AD - SMALLER HEIGHT */
       .ad-footer {
         width: 100%;
-        height: 120px;
+        height: 70px; /* Reduced from 120px */
         background: #050505;
         border-top: 1px solid #1a1a1a;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding-bottom: 10px;
+        padding-bottom: 5px;
       }
 
       .no-src { color: white; text-align: center; margin: auto; }
 
-      /* Mobile adjustment */
       @media (max-width: 900px) {
         .content-split { flex-direction: column-reverse; overflow-y: auto; }
-        .ad-sidebar { min-height: 250px; flex: none; width: 100%; }
-        .player-frame-wrap { min-height: 400px; flex: none; width: 100%; }
+        .ad-sidebar { min-height: 150px; flex: none; width: 100%; }
+        .player-frame-wrap { min-height: 350px; flex: none; width: 100%; }
       }
     </style>
   </head>
@@ -140,7 +140,7 @@
 
       <footer class="ad-footer">
         <ins class="adsbygoogle"
-             style="display:block; width: 100%; height: 90px;"
+             style="display:block; width: 100%; height: 60px;"
              data-ad-client="ca-pub-8373843490344171"
              data-ad-slot="6020102457"
              data-ad-format="auto"
@@ -153,6 +153,7 @@
     </main>
 
     <script>
+      // ... (Rest of your existing JavaScript remains the same)
       const params = new URLSearchParams(window.location.search);
       const srcParam = params.get("game");
       const frame = document.getElementById("media-frame");
