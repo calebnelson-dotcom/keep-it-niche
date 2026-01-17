@@ -3,8 +3,33 @@ importScripts('/scram/scramjet.all.js');
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
 const scramjet = new ScramjetServiceWorker();
 
-self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+self.addEventListener("fetch", event => {
+  const req = event.request;
+  const url = req.url;
+
+  // 🔴 HARD BYPASS — do NOT touch these
+  if (
+    !url.startsWith("http://") &&
+    !url.startsWith("https://")
+  ) return;
+
+  if (
+    url.includes("googlesyndication.com") ||
+    url.includes("doubleclick.net") ||
+    url.includes("googleadservices.com") ||
+    url.includes("adtrafficquality.google")
+  ) {
+    return; // let browser handle it
+  }
+
+  // 🔴 Already proxied — DO NOT rewrap
+  if (url.includes("/scramjet/")) {
+    return;
+  }
+
+  event.respondWith(handleScramjetFetch(event));
+});
+
 
   // Let TMDB images bypass Scramjet cleanly
   if (url.hostname === 'image.tmdb.org') {
