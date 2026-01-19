@@ -3,19 +3,10 @@ importScripts('/scram/scramjet.all.js');
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
 const scramjet = new ScramjetServiceWorker();
 
-// 1. ADDED: Force immediate activation (Fixes "Invalid URL" / Reload issue)
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
-});
-
 self.addEventListener("fetch", event => {
   const req = event.request;
-  const url = req.url; 
-  
+  const url = req.url;
+
   // 🔴 HARD BYPASS — do NOT touch these
   if (
     !url.startsWith("http://") &&
@@ -36,16 +27,16 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // FIXED: Added URL object so .hostname works below
-  const urlObj = new URL(url);
+  event.respondWith(handleScramjetFetch(event));
+});
+
 
   // Let TMDB images bypass Scramjet cleanly
-  if (urlObj.hostname === 'image.tmdb.org') {
-    // Return undefined to let browser handle fetch naturally
+  if (url.hostname === 'image.tmdb.org') {
+    event.respondWith(fetch(event.request));
     return;
   }
 
-  // FIXED: Removed the split syntax and combined into one respondWith
   event.respondWith((async () => {
     try {
       await scramjet.loadConfig();
