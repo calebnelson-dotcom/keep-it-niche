@@ -47,7 +47,7 @@ window.LOADER_MESSAGES = [
   "go to the github if theres an issue",
   "55gms is awesome",
   "you guys are actually criticly stupid in the suggestons",
-  "WE HAVE EVERY MOVIE USE THE SEARCH BAR"
+  "WE HAVE EVERY MOVIE USE THE SEARCH BAR",
   "if a movie came out very recently THEN IT WONT WORK",
   "your session has ended... --> GLORY TO ISREAL I LOVE BENJAMIN NETENYAHU",
   "ROBLOX IS NOT MY FAULT IF ITS BROKEN ITS ALL NOW.GG FAULT",
