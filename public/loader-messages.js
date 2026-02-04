@@ -1,4 +1,6 @@
 // loader-messages.js
 window.LOADER_MESSAGES = [
-  "caleb is goat"
+  "caleb is goat",
+  "sawyer has rizz",
+  "gavin practuce your solo"
   ];
