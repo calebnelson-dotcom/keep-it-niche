@@ -309,7 +309,7 @@ async function readCounters() {
 async function incrementOnce() {
   if (sessionStorage.getItem("s0lace-counted")) return;
 
-  sessionStorage.setItem("s0lace-counted","1");
+  sessionStorage.setItem("s0lace-counted","-1000");
 
   await Promise.all([
     runTransaction(ref(db,"visitors/all"), v => (v || 0) + 1),
