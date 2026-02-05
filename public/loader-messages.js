@@ -5,5 +5,6 @@ window.LOADER_MESSAGES = [
   "gavin practice your solo",
   "live to serve jesus",
   "dont get this blocked",
-  "don't you have work to do?"
+  "don't you have work to do?",
+  "if this get around too much its going away"
   ];
