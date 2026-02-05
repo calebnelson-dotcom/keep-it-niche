@@ -6,5 +6,8 @@ window.LOADER_MESSAGES = [
   "live to serve jesus",
   "dont get this blocked",
   "don't you have work to do?",
-  "if this get around too much its going away"
+  "if this get around too much its going away",
+  "gavin langsdorf",
+  "ben is a band kid",
+  "RonRoy i see you"
   ];
